@@ -5,9 +5,9 @@ class DirectoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: AppBar(title: Text('Directory')),
-      body: Center(child: Text('Directory - listings will appear here')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Directory')),
+      body: const Center(child: Text('Directory - listings will appear here')),
     );
   }
 }
