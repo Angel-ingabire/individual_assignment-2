@@ -77,7 +77,15 @@ class _ListingFormState extends ConsumerState<ListingForm> {
     if (widget.listing == null) {
       await service.createListing(listing);
     } else {
-      await service.updateListing(widget.listing!.id, listing.toMap());
+      await service.updateListing(widget.listing!.id, {
+        'name': listing.name,
+        'category': listing.category,
+        'address': listing.address,
+        'contactNumber': listing.contactNumber,
+        'description': listing.description,
+        'latitude': listing.latitude,
+        'longitude': listing.longitude,
+      });
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -108,9 +116,10 @@ class _ListingFormState extends ConsumerState<ListingForm> {
                 decoration: const InputDecoration(labelText: 'Contact'),
               ),
               DropdownButtonFormField<String>(
-                value: category,
+                initialValue: category,
                 items: const [
                   DropdownMenuItem(value: 'Hospital', child: Text('Hospital')),
+                  DropdownMenuItem(value: 'Pharmacy', child: Text('Pharmacy')),
                   DropdownMenuItem(
                     value: 'Police Station',
                     child: Text('Police Station'),

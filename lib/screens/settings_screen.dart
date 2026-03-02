@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
-import '../services/auth_service.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 import 'auth/verify_email_screen.dart';
@@ -48,9 +47,6 @@ class SettingsScreen extends ConsumerWidget {
             ),
           );
         }
-
-        // Fetch user profile from Firestore
-        final authService = AuthService();
 
         return Scaffold(
           appBar: AppBar(title: const Text('Settings')),

@@ -16,7 +16,12 @@ class MyListingsScreen extends ConsumerWidget {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('My Listings')),
-        body: const Center(child: Text('Please sign in to manage your listings')),
+        body: const Center(
+          child: Text(
+            'Please sign in to manage your listings',
+            textAlign: TextAlign.center,
+          ),
+        ),
       );
     }
 
@@ -25,30 +30,68 @@ class MyListingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('My Listings')),
       body: listingsAsync.when(
-        data: (items) => ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, i) {
-            final Listing item = items[i];
-            return ListTile(
-              title: Text(item.name),
-              subtitle: Text(item.address),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ListingDetailScreen(listing: item))),
-              trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => ListingForm(listing: item)));
-                    }),
-                IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () async {
-                      final service = ref.read(listingServiceProvider);
-                      await service.deleteListing(item.id);
-                    }),
-              ]),
+        data: (items) {
+          if (items.isEmpty) {
+            return const Center(
+              child: Text('You have not added any listings yet'),
             );
-          },
-        ),
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            itemCount: items.length,
+            itemBuilder: (context, i) {
+              final Listing item = items[i];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Card(
+                  elevation: 2,
+                  child: ListTile(
+                    title: Text(
+                      item.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      item.address,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ListingDetailScreen(listing: item),
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ListingForm(listing: item),
+                              ),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                          onPressed: () async {
+                            final service = ref.read(listingServiceProvider);
+                            await service.deleteListing(item.id);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),

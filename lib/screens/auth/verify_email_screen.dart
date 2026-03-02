@@ -16,18 +16,29 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     setState(() => _sending = true);
     try {
       await ref.read(authServiceProvider).sendEmailVerification();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verification email sent')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verification email sent')),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
-      setState(() => _sending = false);
+      if (mounted) {
+        setState(() => _sending = false);
+      }
     }
   }
 
   Future<void> _check() async {
     await ref.read(authServiceProvider).reloadUser();
     // authStateChanges will update automatically
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reloaded user state')));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reloaded user state')),
+    );
   }
 
   @override

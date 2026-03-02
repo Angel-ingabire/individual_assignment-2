@@ -14,21 +14,24 @@ class ListingService {
   }
 
   Stream<List<Listing>> listingsStream({String? category, String? nameQuery}) {
-    // Start with a base query
-    Query q = _col;
-
-    // Apply category filter if provided
-    if (category != null && category.isNotEmpty) {
-      q = q.where('category', isEqualTo: category);
-    }
-
-    // For name search, we need to handle it differently since
-    // Firestore doesn't support both range filters and equality filters well
-    // We'll fetch all results and filter in memory for name queries
-    return q.orderBy('createdAt', descending: true).snapshots().map((snap) {
+    // IMPORTANT:
+    // Avoid composite-index requirements by not combining `where(...)` + `orderBy(...)`.
+    // For this assignment-sized dataset, we stream all listings and filter/sort in memory.
+    return _col.snapshots().map((snap) {
       var listings = snap.docs
           .map((d) => Listing.fromMap(d.id, d.data() as Map<String, dynamic>))
           .toList();
+
+      // Sort newest first (serverTimestamp may arrive later; null-safe fallback already in model)
+      listings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      // Filter by category if provided
+      if (category != null && category.isNotEmpty) {
+        final categoryLower = category.toLowerCase();
+        listings = listings
+            .where((l) => l.category.toLowerCase() == categoryLower)
+            .toList();
+      }
 
       // Filter by name if query is provided
       if (nameQuery != null && nameQuery.isNotEmpty) {
@@ -44,17 +47,15 @@ class ListingService {
 
   Stream<List<Listing>> userListingsStream(String? uid) {
     if (uid == null) return const Stream.empty();
-    return _col
-        .where('createdBy', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snap) => snap.docs
-              .map(
-                (d) => Listing.fromMap(d.id, d.data() as Map<String, dynamic>),
-              )
-              .toList(),
-        );
+    // Same index-avoidance approach as above (no `where` + `orderBy` combo).
+    return _col.snapshots().map((snap) {
+      var listings = snap.docs
+          .map((d) => Listing.fromMap(d.id, d.data() as Map<String, dynamic>))
+          .where((l) => l.createdBy == uid)
+          .toList();
+      listings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return listings;
+    });
   }
 
   Future<void> updateListing(String id, Map<String, dynamic> data) {

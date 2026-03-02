@@ -27,7 +27,37 @@ class MyApp extends StatelessWidget {
       title: 'Kigali City Services',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFFC857), // warm yellow
+          secondary: Color(0xFF4ECDC4),
+          surface: Color(0xFF062345),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF021E3A),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF021E3A),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF062345),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: const Color(0xFF062345),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Color(0xFF021E3A),
+          selectedItemColor: Color(0xFFFFC857),
+          unselectedItemColor: Colors.white70,
+          type: BottomNavigationBarType.fixed,
+        ),
       ),
       home: const AuthGate(),
     );
@@ -80,15 +110,31 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: SafeArea(child: _pages[_currentIndex]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTap,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Directory'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'My Listings'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Services',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_border),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'My Listings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map_outlined),
+            activeIcon: Icon(Icons.map),
+            label: 'Map',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            activeIcon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
       ),
     );
