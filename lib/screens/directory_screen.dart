@@ -17,10 +17,66 @@ class DirectoryScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search by name'),
-              onChanged: (v) => ref.read(listingFilterProvider.notifier).state =
-                  ListingFilter(query: v, category: ref.read(listingFilterProvider).category),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search by name',
+                  ),
+                  onChanged: (v) =>
+                      ref
+                          .read(listingFilterProvider.notifier)
+                          .state = ListingFilter(
+                        query: v,
+                        category: ref.read(listingFilterProvider).category,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: ref.watch(listingFilterProvider).category,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.filter_list),
+                    hintText: 'Filter by category',
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: null,
+                      child: Text('All Categories'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Hospital',
+                      child: Text('Hospital'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Police Station',
+                      child: Text('Police Station'),
+                    ),
+                    DropdownMenuItem(value: 'Library', child: Text('Library')),
+                    DropdownMenuItem(
+                      value: 'Utility Office',
+                      child: Text('Utility Office'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Restaurant',
+                      child: Text('Restaurant'),
+                    ),
+                    DropdownMenuItem(value: 'Café', child: Text('Café')),
+                    DropdownMenuItem(value: 'Park', child: Text('Park')),
+                    DropdownMenuItem(
+                      value: 'Tourist Attraction',
+                      child: Text('Tourist Attraction'),
+                    ),
+                  ],
+                  onChanged: (v) =>
+                      ref
+                          .read(listingFilterProvider.notifier)
+                          .state = ListingFilter(
+                        query: ref.read(listingFilterProvider).query,
+                        category: v,
+                      ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -32,7 +88,12 @@ class DirectoryScreen extends ConsumerWidget {
                   return ListTile(
                     title: Text(item.name),
                     subtitle: Text(item.category),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ListingDetailScreen(listing: item))),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ListingDetailScreen(listing: item),
+                      ),
+                    ),
                   );
                 },
               ),
