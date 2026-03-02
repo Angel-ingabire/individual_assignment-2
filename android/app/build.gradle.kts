@@ -42,3 +42,6 @@ android {
 flutter {
     source = "../.."
 }
+
+// Google services plugin (adds support for reading google-services.json)
+apply(plugin = "com.google.gms.google-services")
