@@ -35,17 +35,17 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
-  # Firebase & state management
-  firebase_core: ^2.12.0
-  firebase_auth: ^4.6.0
-  cloud_firestore: ^4.9.0
-  flutter_riverpod: ^2.3.6
-  google_sign_in: ^6.1.0
+  # Firebase & state management (latest FlutterFire for Dart 3.10)
+  firebase_core: ^4.4.0
+  firebase_auth: ^6.1.4
+  cloud_firestore: ^6.1.2
+  flutter_riverpod: ^2.6.1
+  google_sign_in: ^7.2.0
 
   # Maps & location
-  google_maps_flutter: ^2.4.6
-  geolocator: ^9.0.2
-  url_launcher: ^6.1.10
+  google_maps_flutter: ^2.7.0
+  geolocator: ^14.0.2
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

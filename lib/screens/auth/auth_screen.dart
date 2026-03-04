@@ -52,22 +52,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _signInGoogle() async {
-    setState(() => _isLoading = true);
-    try {
-      await _authService.signInWithGoogle();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,12 +82,6 @@ class _AuthScreenState extends State<AuthScreen> {
               TextButton(
                 onPressed: _signUpEmail,
                 child: const Text('Create account'),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: _signInGoogle,
-                icon: const Icon(Icons.login),
-                label: const Text('Sign in with Google'),
               ),
             ],
           ],

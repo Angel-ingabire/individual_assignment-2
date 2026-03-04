@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_service.dart';
 
@@ -54,31 +53,5 @@ class AuthService {
 
   Future<DocumentSnapshot?> getUserProfile(String uid) async {
     return _db.collection('users').doc(uid).get();
-  }
-
-  Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-    if (googleUser == null) {
-      throw FirebaseAuthException(
-        code: 'ERROR_ABORTED_BY_USER',
-        message: 'Sign in aborted by user',
-      );
-    }
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    final cred = await _auth.signInWithCredential(credential);
-    if (cred.user != null) {
-      await _db.collection('users').doc(cred.user!.uid).set({
-        'email': cred.user!.email,
-        'displayName': cred.user!.displayName ?? '',
-        'emailVerified': cred.user!.emailVerified,
-        'photoURL': cred.user!.photoURL ?? '',
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    }
-    return cred;
   }
 }
