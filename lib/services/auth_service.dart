@@ -2,6 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_service.dart';
 
+// Google Sign In stub - will be implemented properly after UI setup
+class GoogleSignInHelper {
+  static bool isSupported() => false;
+  static Future<Map<String, String>?> signIn() async => null;
+  static Future<void> signOut() async {}
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseService.auth;
   final FirebaseFirestore _db = FirebaseService.firestore;
@@ -28,6 +35,8 @@ class AuthService {
       'email': email,
       'displayName': displayName ?? '',
       'createdAt': FieldValue.serverTimestamp(),
+      'photoURL': cred.user?.photoURL ?? '',
+      'provider': 'email',
     });
     return cred;
   }
@@ -37,6 +46,74 @@ class AuthService {
     required String password,
   }) {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
+  }
+
+  // Sign in with Google - requires proper setup in Firebase Console
+  // and google-services.json configuration
+  Future<UserCredential> signInWithGoogle() async {
+    // Use Firebase Auth's Google provider for sign-in
+    final googleProvider = GoogleAuthProvider();
+    googleProvider.addScope(
+      'https://www.googleapis.com/auth/contacts.readonly',
+    );
+    googleProvider.setCustomParameters({'prompt': 'select_account'});
+
+    try {
+      final userCredential = await _auth.signInWithPopup(googleProvider);
+
+      // Create or update user profile in Firestore
+      final user = userCredential.user;
+      if (user != null) {
+        await _db.collection('users').doc(user.uid).set({
+          'email': user.email ?? '',
+          'displayName': user.displayName ?? '',
+          'photoURL': user.photoURL ?? '',
+          'createdAt': FieldValue.serverTimestamp(),
+          'provider': 'google',
+        }, SetOptions(merge: true));
+      }
+
+      return userCredential;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<UserCredential> signInWithPhoneNumber(
+    String verificationId,
+    String smsCode,
+  ) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    return _auth.signInWithCredential(credential);
+  }
+
+  // Phone verification - returns the verification ID for manual verification
+  Future<String> sendPhoneVerification(String phoneNumber) async {
+    String? verificationId;
+
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Auto-sign in when verification is complete on some devices
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        throw e;
+      },
+      codeSent: (String verificationIdInternal, int? resendToken) {
+        verificationId = verificationIdInternal;
+      },
+      codeAutoRetrievalTimeout: (String verificationIdInternal) {
+        verificationId = verificationIdInternal;
+      },
+    );
+
+    // Wait a bit for the code to be sent
+    await Future.delayed(const Duration(milliseconds: 1500));
+    return verificationId ?? '';
   }
 
   Future<void> signOut() => _auth.signOut();
