@@ -2,56 +2,133 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_service.dart';
 
-// Google Sign In stub - will be implemented properly after UI setup
-class GoogleSignInHelper {
-  static bool isSupported() => false;
-  static Future<Map<String, String>?> signIn() async => null;
-  static Future<void> signOut() async {}
+/// Enum to track the authentication provider type
+enum AuthProviderType { email, phone, google, unknown }
+
+/// Result class for sign-in operations that includes verification status
+class AuthSignInResult {
+  final UserCredential credential;
+  final AuthProviderType provider;
+  final bool isVerified;
+
+  AuthSignInResult({
+    required this.credential,
+    required this.provider,
+    required this.isVerified,
+  });
 }
 
+/// Service class for handling Firebase Authentication operations
+/// Centralizes all authentication logic for easy maintenance
 class AuthService {
   final FirebaseAuth _auth = FirebaseService.auth;
   final FirebaseFirestore _db = FirebaseService.firestore;
 
+  /// Stream of auth state changes - use this to listen for login/logout events
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
+  /// Get the currently signed-in user, if any
   User? get currentUser => _auth.currentUser;
 
-  Future<UserCredential> signUp({
+  /// Check if the current user's email is verified
+  /// Returns true for phone auth users (already verified)
+  /// or if email is verified for email-based auth
+  Future<bool> isUserVerified() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    // Get the provider used to sign in
+    final providerType = await _getUserProviderType(user);
+
+    // Phone authentication doesn't require email verification
+    if (providerType == AuthProviderType.phone) {
+      return true;
+    }
+
+    // For email/google auth, reload and check verification status
+    await user.reload();
+    final refreshedUser = _auth.currentUser;
+    return refreshedUser?.emailVerified ?? false;
+  }
+
+  /// Get the primary authentication provider for a user
+  Future<AuthProviderType> _getUserProviderType(User user) async {
+    // Check provider data first
+    for (final provider in user.providerData) {
+      if (provider.providerId == 'phone') {
+        return AuthProviderType.phone;
+      } else if (provider.providerId == 'google.com') {
+        return AuthProviderType.google;
+      }
+    }
+
+    // Default to email for password-based auth
+    return AuthProviderType.email;
+  }
+
+  /// Sign up with email and password
+  /// Automatically sends verification email after signup
+  Future<AuthSignInResult> signUp({
     required String email,
     required String password,
     String? displayName,
   }) async {
+    // Create the user account
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    // Update display name if provided
     if (displayName != null) {
       await cred.user?.updateDisplayName(displayName);
     }
+
+    // Send email verification
     await cred.user?.sendEmailVerification();
-    // create user profile in Firestore
+
+    // Create user profile in Firestore
     await _db.collection('users').doc(cred.user!.uid).set({
       'email': email,
       'displayName': displayName ?? '',
       'createdAt': FieldValue.serverTimestamp(),
       'photoURL': cred.user?.photoURL ?? '',
       'provider': 'email',
+      'emailVerified': false,
     });
-    return cred;
+
+    return AuthSignInResult(
+      credential: cred,
+      provider: AuthProviderType.email,
+      isVerified: false,
+    );
   }
 
-  Future<UserCredential> signIn({
+  /// Sign in with email and password
+  /// Returns AuthSignInResult with verification status
+  Future<AuthSignInResult> signInWithEmail({
     required String email,
     required String password,
-  }) {
-    return _auth.signInWithEmailAndPassword(email: email, password: password);
+  }) async {
+    final cred = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    // Reload user to get latest verification status
+    await cred.user?.reload();
+    final refreshedUser = _auth.currentUser;
+
+    return AuthSignInResult(
+      credential: cred,
+      provider: AuthProviderType.email,
+      isVerified: refreshedUser?.emailVerified ?? false,
+    );
   }
 
-  // Sign in with Google - requires proper setup in Firebase Console
-  // and google-services.json configuration
-  Future<UserCredential> signInWithGoogle() async {
-    // Use Firebase Auth's Google provider for sign-in
+  /// Sign in with Google
+  /// Google accounts are typically pre-verified by Google
+  Future<AuthSignInResult> signInWithGoogle() async {
     final googleProvider = GoogleAuthProvider();
     googleProvider.addScope(
       'https://www.googleapis.com/auth/contacts.readonly',
@@ -60,26 +137,43 @@ class AuthService {
 
     try {
       final userCredential = await _auth.signInWithPopup(googleProvider);
-
-      // Create or update user profile in Firestore
       final user = userCredential.user;
+
       if (user != null) {
+        // Create or update user profile in Firestore
         await _db.collection('users').doc(user.uid).set({
           'email': user.email ?? '',
           'displayName': user.displayName ?? '',
           'photoURL': user.photoURL ?? '',
           'createdAt': FieldValue.serverTimestamp(),
           'provider': 'google',
+          'emailVerified': user.emailVerified,
         }, SetOptions(merge: true));
+
+        // Reload to get latest verification status
+        await user.reload();
+        final refreshedUser = _auth.currentUser;
+
+        return AuthSignInResult(
+          credential: userCredential,
+          provider: AuthProviderType.google,
+          isVerified: refreshedUser?.emailVerified ?? user.emailVerified,
+        );
       }
 
-      return userCredential;
+      return AuthSignInResult(
+        credential: userCredential,
+        provider: AuthProviderType.google,
+        isVerified: true, // Google accounts are typically verified
+      );
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<UserCredential> signInWithPhoneNumber(
+  /// Sign in with phone number
+  /// Phone authentication doesn't require email verification
+  Future<AuthSignInResult> signInWithPhoneNumber(
     String verificationId,
     String smsCode,
   ) async {
@@ -87,10 +181,26 @@ class AuthService {
       verificationId: verificationId,
       smsCode: smsCode,
     );
-    return _auth.signInWithCredential(credential);
+    final cred = await _auth.signInWithCredential(credential);
+
+    // Create user profile in Firestore if it doesn't exist
+    await _db.collection('users').doc(cred.user!.uid).set({
+      'phoneNumber': cred.user?.phoneNumber ?? '',
+      'displayName': cred.user?.displayName ?? '',
+      'createdAt': FieldValue.serverTimestamp(),
+      'provider': 'phone',
+      'emailVerified': true, // Phone auth is already verified
+    }, SetOptions(merge: true));
+
+    return AuthSignInResult(
+      credential: cred,
+      provider: AuthProviderType.phone,
+      isVerified: true, // Phone auth is always verified
+    );
   }
 
-  // Phone verification - returns the verification ID for manual verification
+  /// Send phone verification code
+  /// Returns the verification ID needed to complete sign-in
   Future<String> sendPhoneVerification(String phoneNumber) async {
     String? verificationId;
 
@@ -111,23 +221,37 @@ class AuthService {
       },
     );
 
-    // Wait a bit for the code to be sent
+    // Wait for the code to be sent
     await Future.delayed(const Duration(milliseconds: 1500));
     return verificationId ?? '';
   }
 
+  /// Sign out the current user
   Future<void> signOut() => _auth.signOut();
 
+  /// Send email verification to current user
+  /// Only works for email-based accounts that aren't verified yet
   Future<void> sendEmailVerification() async {
     final user = _auth.currentUser;
-    if (user != null && !user.emailVerified) await user.sendEmailVerification();
+    if (user != null && !user.emailVerified) {
+      await user.sendEmailVerification();
+    }
   }
 
+  /// Reload the current user to get latest verification status
+  /// Important: Call this after email verification to update the user's status
   Future<void> reloadUser() async {
     final user = _auth.currentUser;
-    if (user != null) await user.reload();
+    if (user != null) {
+      await user.reload();
+      // Update Firestore with latest verification status
+      await _db.collection('users').doc(user.uid).set({
+        'emailVerified': user.emailVerified,
+      }, SetOptions(merge: true));
+    }
   }
 
+  /// Get user profile from Firestore
   Future<DocumentSnapshot?> getUserProfile(String uid) async {
     return _db.collection('users').doc(uid).get();
   }

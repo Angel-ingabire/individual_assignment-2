@@ -43,9 +43,18 @@ class _AuthScreenState extends State<AuthScreen>
 
     setState(() => _isLoading = true);
     try {
-      await _authService.signIn(
+      await _authService.signInWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+      // Show success message - navigation will be handled by AuthGate in main.dart
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sign in successful!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -75,12 +84,18 @@ class _AuthScreenState extends State<AuthScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Account created! Please check your email to verify.'),
+          content: Text(
+            'Account created! Please check your email to verify your account.',
+          ),
           backgroundColor: Colors.green,
         ),
       );
       // Switch to login tab
       _tabController.animateTo(0);
+      // Clear form fields
+      _emailController.clear();
+      _passwordController.clear();
+      _nameController.clear();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +115,15 @@ class _AuthScreenState extends State<AuthScreen>
     setState(() => _isLoading = true);
     try {
       await _authService.signInWithGoogle();
+      if (!mounted) return;
+      // Show success message - navigation will be handled by AuthGate in main.dart
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Signed in with Google!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

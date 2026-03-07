@@ -7,6 +7,10 @@ class ListingService {
     'listings',
   );
 
+  // Subcollection for reviews
+  CollectionReference _reviewsCol(String listingId) =>
+      _col.doc(listingId).collection('reviews');
+
   Future<DocumentReference> createListing(Listing listing) {
     final data = listing.toMap();
     data['createdAt'] = FieldValue.serverTimestamp();
@@ -22,8 +26,12 @@ class ListingService {
           .map((d) => Listing.fromMap(d.id, d.data() as Map<String, dynamic>))
           .toList();
 
-      // Sort newest first (serverTimestamp may arrive later; null-safe fallback already in model)
-      listings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // Sort by rating (highest first), then by creation date
+      listings.sort((a, b) {
+        final ratingCompare = b.rating.compareTo(a.rating);
+        if (ratingCompare != 0) return ratingCompare;
+        return b.createdAt.compareTo(a.createdAt);
+      });
 
       // Filter by category if provided
       if (category != null && category.isNotEmpty) {
@@ -42,6 +50,13 @@ class ListingService {
       }
 
       return listings;
+    });
+  }
+
+  Stream<Listing?> listingStream(String listingId) {
+    return _col.doc(listingId).snapshots().map((snap) {
+      if (!snap.exists) return null;
+      return Listing.fromMap(snap.id, snap.data() as Map<String, dynamic>);
     });
   }
 
@@ -64,4 +79,68 @@ class ListingService {
   }
 
   Future<void> deleteListing(String id) => _col.doc(id).delete();
+
+  // Add a rating to a listing
+  Future<void> addRating(String listingId, double rating) async {
+    final doc = await _col.doc(listingId).get();
+    if (!doc.exists) return;
+
+    final currentData = doc.data() as Map<String, dynamic>;
+    final currentRating = (currentData['rating'] ?? 0.0).toDouble();
+    final currentTotalRatings = (currentData['totalRatings'] ?? 0) as int;
+
+    // Calculate new average rating
+    final newTotalRatings = currentTotalRatings + 1;
+    final newRating =
+        ((currentRating * currentTotalRatings) + rating) / newTotalRatings;
+
+    await _col.doc(listingId).update({
+      'rating': newRating,
+      'totalRatings': newTotalRatings,
+    });
+  }
+
+  // Add a review to a listing
+  Future<DocumentReference> addReview(String listingId, Review review) async {
+    final data = review.toMap();
+    data['timestamp'] = FieldValue.serverTimestamp();
+    final reviewRef = await _reviewsCol(listingId).add(data);
+
+    // Also update the listing's rating
+    await addRating(listingId, review.rating);
+
+    return reviewRef;
+  }
+
+  // Get reviews stream for a listing
+  Stream<List<Review>> reviewsStream(String listingId) {
+    return _reviewsCol(listingId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) => Review.fromMap(d.id, d.data() as Map<String, dynamic>),
+              )
+              .toList(),
+        );
+  }
+
+  // Toggle bookmark status
+  Future<void> toggleBookmark(String listingId, bool isBookmarked) {
+    return _col.doc(listingId).update({'isBookmarked': isBookmarked});
+  }
+
+  // Get bookmarked listings
+  Stream<List<Listing>> bookmarkedListingsStream(String? uid) {
+    if (uid == null) return const Stream.empty();
+    return _col.snapshots().map((snap) {
+      var listings = snap.docs
+          .map((d) => Listing.fromMap(d.id, d.data() as Map<String, dynamic>))
+          .where((l) => l.isBookmarked && l.createdBy == uid)
+          .toList();
+      listings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return listings;
+    });
+  }
 }

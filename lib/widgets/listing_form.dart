@@ -21,7 +21,8 @@ class _ListingFormState extends ConsumerState<ListingForm> {
   late final TextEditingController _descC;
   late final TextEditingController _latC;
   late final TextEditingController _lngC;
-  String category = 'Restaurant';
+  late final TextEditingController _distanceC;
+  String category = 'Cafe';
 
   @override
   void initState() {
@@ -36,7 +37,10 @@ class _ListingFormState extends ConsumerState<ListingForm> {
     _lngC = TextEditingController(
       text: widget.listing?.longitude.toString() ?? '30.0606',
     );
-    category = widget.listing?.category ?? 'Restaurant';
+    _distanceC = TextEditingController(
+      text: widget.listing?.distance?.toString() ?? '',
+    );
+    category = widget.listing?.category ?? 'Cafe';
   }
 
   @override
@@ -47,6 +51,7 @@ class _ListingFormState extends ConsumerState<ListingForm> {
     _descC.dispose();
     _latC.dispose();
     _lngC.dispose();
+    _distanceC.dispose();
     super.dispose();
   }
 
@@ -60,6 +65,10 @@ class _ListingFormState extends ConsumerState<ListingForm> {
       return;
     }
 
+    final distance = _distanceC.text.trim().isNotEmpty
+        ? double.tryParse(_distanceC.text.trim())
+        : null;
+
     final listing = Listing(
       id: widget.listing?.id ?? '',
       name: _nameC.text.trim(),
@@ -71,6 +80,11 @@ class _ListingFormState extends ConsumerState<ListingForm> {
       longitude: double.tryParse(_lngC.text) ?? 30.0606,
       createdBy: widget.listing?.createdBy ?? user.uid,
       createdAt: widget.listing?.createdAt ?? Timestamp.now(),
+      rating: widget.listing?.rating ?? 0.0,
+      totalRatings: widget.listing?.totalRatings ?? 0,
+      distance: distance,
+      imageUrl: widget.listing?.imageUrl,
+      isBookmarked: widget.listing?.isBookmarked ?? false,
     );
 
     final service = ref.read(listingServiceProvider);
@@ -85,6 +99,7 @@ class _ListingFormState extends ConsumerState<ListingForm> {
         'description': listing.description,
         'latitude': listing.latitude,
         'longitude': listing.longitude,
+        'distance': listing.distance,
       });
     }
     if (mounted) Navigator.of(context).pop();
@@ -104,7 +119,7 @@ class _ListingFormState extends ConsumerState<ListingForm> {
             children: [
               TextFormField(
                 controller: _nameC,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Service Name'),
                 validator: (v) => (v ?? '').isEmpty ? 'Required' : null,
               ),
               TextFormField(
@@ -117,9 +132,16 @@ class _ListingFormState extends ConsumerState<ListingForm> {
               ),
               DropdownButtonFormField<String>(
                 initialValue: category,
+                decoration: const InputDecoration(labelText: 'Category'),
                 items: const [
-                  DropdownMenuItem(value: 'Hospital', child: Text('Hospital')),
+                  DropdownMenuItem(value: 'Cafe', child: Text('Cafe')),
                   DropdownMenuItem(value: 'Pharmacy', child: Text('Pharmacy')),
+                  DropdownMenuItem(value: 'Hospital', child: Text('Hospital')),
+                  DropdownMenuItem(value: 'School', child: Text('School')),
+                  DropdownMenuItem(
+                    value: 'Restaurant',
+                    child: Text('Restaurant'),
+                  ),
                   DropdownMenuItem(
                     value: 'Police Station',
                     child: Text('Police Station'),
@@ -129,11 +151,6 @@ class _ListingFormState extends ConsumerState<ListingForm> {
                     value: 'Utility Office',
                     child: Text('Utility Office'),
                   ),
-                  DropdownMenuItem(
-                    value: 'Restaurant',
-                    child: Text('Restaurant'),
-                  ),
-                  DropdownMenuItem(value: 'Café', child: Text('Café')),
                   DropdownMenuItem(value: 'Park', child: Text('Park')),
                   DropdownMenuItem(
                     value: 'Tourist Attraction',
@@ -148,6 +165,19 @@ class _ListingFormState extends ConsumerState<ListingForm> {
                 maxLines: 3,
               ),
               const SizedBox(height: 8),
+              // Distance field (optional)
+              TextFormField(
+                controller: _distanceC,
+                decoration: const InputDecoration(
+                  labelText: 'Distance (km) - Optional',
+                  hintText: 'e.g., 1.5',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: true,
+                ),
+              ),
+
               Row(
                 children: [
                   Expanded(

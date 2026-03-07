@@ -2,5 +2,5 @@
     "cmake.sourceDirectory": "C:/Users/HP/Documents/individual_assignment-2/linux",
     "editor.tabCompletion": "on",
     "diffEditor.codeLens": true,
-    "MutableAI.upsell": true
+    "MutableAI.upsell": false
 }
