@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -518,25 +519,40 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: pos,
-                        zoom: 15,
-                      ),
-                      markers: {
-                        Marker(
-                          markerId: MarkerId(widget.listing.id),
-                          position: pos,
-                          infoWindow: InfoWindow(
-                            title: widget.listing.name,
-                            snippet: widget.listing.address,
+                    child: kIsWeb
+                        ? Container(
+                            color: const Color(0xFF062345),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.all(16),
+                            child: const Text(
+                              'Map preview is available on Android/iOS builds.\n\n'
+                              'On web, use the "Get Directions" button below to open Google Maps.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : GoogleMap(
+                            initialCameraPosition: CameraPosition(
+                              target: pos,
+                              zoom: 15,
+                            ),
+                            markers: {
+                              Marker(
+                                markerId: MarkerId(widget.listing.id),
+                                position: pos,
+                                infoWindow: InfoWindow(
+                                  title: widget.listing.name,
+                                  snippet: widget.listing.address,
+                                ),
+                              ),
+                            },
+                            zoomControlsEnabled: false,
+                            mapToolbarEnabled: false,
+                            myLocationButtonEnabled: false,
                           ),
-                        ),
-                      },
-                      zoomControlsEnabled: false,
-                      mapToolbarEnabled: false,
-                      myLocationButtonEnabled: false,
-                    ),
                   ),
                   const SizedBox(height: 16),
 

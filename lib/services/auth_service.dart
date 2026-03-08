@@ -255,4 +255,31 @@ class AuthService {
   Future<DocumentSnapshot?> getUserProfile(String uid) async {
     return _db.collection('users').doc(uid).get();
   }
+
+  /// Update user profile fields (both FirebaseAuth display name and Firestore).
+  /// Any non-null parameter will be written; null fields are ignored.
+  Future<void> updateUserProfile({
+    required String uid,
+    String? displayName,
+    String? phoneNumber,
+    String? city,
+    String? bio,
+  }) async {
+    final user = _auth.currentUser;
+
+    // Keep auth user in sync with profile name
+    if (user != null && user.uid == uid && displayName != null) {
+      await user.updateDisplayName(displayName);
+    }
+
+    final data = <String, dynamic>{};
+    if (displayName != null) data['displayName'] = displayName;
+    if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
+    if (city != null) data['city'] = city;
+    if (bio != null) data['bio'] = bio;
+
+    if (data.isNotEmpty) {
+      await _db.collection('users').doc(uid).set(data, SetOptions(merge: true));
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../providers/location_provider.dart';
@@ -54,6 +55,38 @@ class MapViewScreen extends ConsumerWidget {
                     if (listings.isEmpty) {
                       return const Center(
                         child: Text('No locations to display on map'),
+                      );
+                    }
+
+                    // On web, avoid using the GoogleMap widget which is not
+                    // properly supported in this setup. Show a helpful message instead.
+                    if (kIsWeb) {
+                      return ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          const Text(
+                            'Interactive map preview is not available on the web build.\n\n'
+                            'Run the app on an Android emulator or physical device to see the embedded map. '
+                            'You can still open directions from each listing detail screen.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 16),
+                          ...listings.map(
+                            (listing) => ListTile(
+                              title: Text(listing.name),
+                              subtitle: Text(listing.category),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        ListingDetailScreen(listing: listing),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       );
                     }
 
