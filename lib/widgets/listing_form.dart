@@ -88,21 +88,38 @@ class _ListingFormState extends ConsumerState<ListingForm> {
     );
 
     final service = ref.read(listingServiceProvider);
-    if (widget.listing == null) {
-      await service.createListing(listing);
-    } else {
-      await service.updateListing(widget.listing!.id, {
-        'name': listing.name,
-        'category': listing.category,
-        'address': listing.address,
-        'contactNumber': listing.contactNumber,
-        'description': listing.description,
-        'latitude': listing.latitude,
-        'longitude': listing.longitude,
-        'distance': listing.distance,
-      });
+    try {
+      if (widget.listing == null) {
+        await service.createListing(listing);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Listing created successfully')),
+          );
+        }
+      } else {
+        await service.updateListing(widget.listing!.id, {
+          'name': listing.name,
+          'category': listing.category,
+          'address': listing.address,
+          'contactNumber': listing.contactNumber,
+          'description': listing.description,
+          'latitude': listing.latitude,
+          'longitude': listing.longitude,
+          'distance': listing.distance,
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Listing updated successfully')),
+          );
+        }
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save listing: $e')),
+      );
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   @override

@@ -215,7 +215,7 @@ class _DirectoryCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: categoryColor.withValues(alpha: 0.15),
+                    color: categoryColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.place, color: categoryColor),
@@ -237,7 +237,7 @@ class _DirectoryCard extends StatelessWidget {
                       Text(
                         listing.address,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white.withOpacity(0.8),
                           fontSize: 13,
                         ),
                         maxLines: 1,
@@ -290,7 +290,7 @@ class _DirectoryCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: categoryColor.withValues(alpha: 0.2),
+                              color: categoryColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(

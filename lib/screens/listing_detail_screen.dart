@@ -313,7 +313,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      categoryColor.withValues(alpha: 0.8),
+                      categoryColor.withOpacity(0.8),
                       theme.colorScheme.surface,
                     ],
                   ),
@@ -322,7 +322,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                   child: Icon(
                     _getCategoryIcon(widget.listing.category),
                     size: 80,
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: Colors.white.withOpacity(0.3),
                   ),
                 ),
               ),
@@ -341,7 +341,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: categoryColor.withValues(alpha: 0.2),
+                      color: categoryColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: categoryColor),
                     ),
@@ -514,7 +514,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        color: theme.colorScheme.primary.withOpacity(0.3),
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
@@ -592,14 +592,14 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF062345),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: categoryColor.withValues(alpha: 0.3)),
+        border: Border.all(color: categoryColor.withOpacity(0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: categoryColor.withValues(alpha: 0.15),
+              color: categoryColor.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -681,7 +681,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF062345),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: categoryColor.withValues(alpha: 0.2)),
+        border: Border.all(color: categoryColor.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -743,7 +743,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF062345),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -751,7 +751,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 20),

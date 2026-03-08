@@ -161,7 +161,7 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen>
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: categoryColor.withValues(alpha: 0.15),
+                                color: categoryColor.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(
@@ -229,7 +229,7 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: categoryColor.withValues(alpha: 0.2),
+                                color: categoryColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -374,7 +374,7 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen>
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: categoryColor.withValues(alpha: 0.15),
+                                color: categoryColor.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(
@@ -442,7 +442,7 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: categoryColor.withValues(alpha: 0.2),
+                                color: categoryColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(

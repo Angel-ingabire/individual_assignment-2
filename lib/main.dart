@@ -45,12 +45,7 @@ class MyApp extends StatelessWidget {
             borderSide: BorderSide.none,
           ),
         ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF062345),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
+        cardColor: const Color(0xFF062345),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: Color(0xFF021E3A),
           selectedItemColor: Color(0xFFFFC857),

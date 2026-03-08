@@ -96,9 +96,8 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.2),
+                  color:
+                      Theme.of(context).colorScheme.primary.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Icon(
