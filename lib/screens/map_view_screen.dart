@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/location_provider.dart';
 import '../services/location_service.dart';
 import '../providers/listing_provider.dart';
@@ -30,17 +31,14 @@ class MapViewScreen extends ConsumerWidget {
             children: [
               if (!myLocationEnabled)
                 MaterialBanner(
-                  content: Text(
-                    switch (access) {
-                      LocationAccessState.serviceDisabled =>
-                        'Location services are disabled. Enable GPS to show your position on the map.',
-                      LocationAccessState.deniedForever =>
-                        'Location permission is permanently denied. Enable it from app settings to show your position.',
-                      _ =>
-                        'Location permission is denied. You can still use the map, but your current position won’t be shown.',
-                    },
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                  content: Text(switch (access) {
+                    LocationAccessState.serviceDisabled =>
+                      'Location services are disabled. Enable GPS to show your position on the map.',
+                    LocationAccessState.deniedForever =>
+                      'Location permission is permanently denied. Enable it from app settings to show your position.',
+                    _ =>
+                      'Location permission is denied. You can still use the map, but your current position won’t be shown.',
+                  }, style: const TextStyle(color: Colors.white)),
                   backgroundColor: const Color(0xFF062345),
                   actions: [
                     TextButton(
@@ -64,26 +62,86 @@ class MapViewScreen extends ConsumerWidget {
                       return ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
-                          const Text(
-                            'Interactive map preview is not available on the web build.\n\n'
-                            'Run the app on an Android emulator or physical device to see the embedded map. '
-                            'You can still open directions from each listing detail screen.',
-                            style: TextStyle(color: Colors.white70),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF062345),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              '📍 Interactive map is not available on web.\n\n'
+                              'Use the "Get Directions" button on each listing to open navigation in Google Maps.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ...listings.map(
-                            (listing) => ListTile(
-                              title: Text(listing.name),
-                              subtitle: Text(listing.category),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        ListingDetailScreen(listing: listing),
+                            (listing) => Card(
+                              color: const Color(0xFF062345),
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                title: Text(
+                                  listing.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                );
-                              },
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      listing.category,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      listing.address,
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    final url = Uri.parse(
+                                      'https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}',
+                                    );
+                                    await launchUrl(
+                                      url,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.directions, size: 18),
+                                  label: const Text('Navigate'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    foregroundColor: Colors.black87,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ListingDetailScreen(listing: listing),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ],
